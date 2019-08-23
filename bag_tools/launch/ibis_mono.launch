@@ -1,0 +1,22 @@
+<launch>
+
+<arg name="vehicle" default="ibis"/>
+<arg name="camera" default="stereo_camera"/>
+<arg name="imageIN" default="image_raw"/>
+<arg name="imageOUT" default="image"/>
+<arg name="run_rviz" default="true"/>
+<arg name="bagfile" default="/home/abeauvisage/CityLondon/datasets/bags/ibis_coop_nav_2019-06-26-14-04-47.bag"/>
+
+<node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile)"/>
+
+<node pkg="image_transport" type="republish" name="left_images" args="compressed in:=/$(arg vehicle)/$(arg camera)/left/$(arg imageIN) raw out:=/$(arg vehicle)/$(arg camera)/left/$(arg imageOUT)" output="screen">
+</node>
+
+<node pkg="image_transport" type="republish" name="right_images" args="compressed in:=/$(arg vehicle)/$(arg camera)/right/$(arg imageIN) raw out:=/$(arg vehicle)/$(arg camera)/right/$(arg imageOUT)" output="screen">
+</node>
+
+<group if="$(arg run_rviz)">
+<node pkg="rviz" type="rviz" name="rviz_control" args="-d /home/abeauvisage/.rviz/moon_dataset.rviz" output="screen"/>
+</group>
+
+</launch>

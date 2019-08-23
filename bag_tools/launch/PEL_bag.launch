@@ -1,0 +1,43 @@
+<launch>
+
+<arg name="vehicle" default="hcru0"/>
+<arg name="camera" default="pt_stereo_rect"/>
+<arg name="image" default="image"/>
+<arg name="stereo_mode" default="true"/>
+<arg name="run_rviz" default="true"/>
+<arg name="bagfile" default="/home/abeauvisage/CityLondon/datasets/bags/PEL-20180727-145249.bag"/>
+
+<node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile)"/>
+<node pkg="tf" type="static_transform_publisher" name="nav_to_odo_nav" args="0 0 0 -1.57 0 -1.57 nav odo_nav 100"/>
+
+<node pkg="image_transport" type="republish" name="rep_rawl" args="raw in:=/hcru0/pt_stereo_rect/left/image raw out:=/hcru0/pt_stereo_rect/left/image_raw" />
+<node pkg="image_transport" type="republish" name="rep_rawr" args="raw in:=/hcru0/pt_stereo_rect/right/image raw out:=/hcru0/pt_stereo_rect/right/image_raw" />
+
+<!-- node pkg="viso2_ros" type="mono_odometer" name="$(arg vehicle)_mono" unless="$(arg stereo_mode)">
+    <remap from="image" to="/$(arg vehicle)/$(arg camera)/left/$(arg image)"/>
+    <param name="base_link_frame_id" value="odo_rover_base"/>
+    <param name="odom_frame_id" value="nav_current_submap"/>
+
+    <param name="max_features" value="10" />
+    <param name="motion_threshold" value="350" />
+</node -->
+
+<!-- node pkg="viso2_ros" type="stereo_odometer" name="$(arg vehicle)_stereo" if="$(arg stereo_mode)">
+    <remap from="image" to="$(arg image)"/>
+    <remap from="stereo" to="/$(arg vehicle)/$(arg camera)"/>
+    <param name="base_link_frame_id" value="odo_rover_base"/>
+    <param name="odom_frame_id" value="odo_nav"/>
+    <param name="sensor_frame_id" value="odo_cam_left"/>
+    <param name="publish_tf" value="true"/>
+
+    <param name="max_features" value="10" />
+    <param name="motion_threshold" value="350" />
+</node -->
+
+<node pkg="tf" type="static_transform_publisher" name="cam_to_rover_base" args="0.24 0.045 0.16 -0.6097 0.61365 -0.3559 0.35361 odo_rover_base odo_cam_left 100"/>
+
+<group if="$(arg run_rviz)">
+<node pkg="rviz" type="rviz" name="rviz_control" args="-d /home/abeauvisage/.rviz/PEL_dataset.rviz" output="screen"/>
+</group>
+
+</launch>

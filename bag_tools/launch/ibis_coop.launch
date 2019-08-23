@@ -1,0 +1,42 @@
+<launch>
+
+<arg name="vehicle_odom" default="ibis1"/>
+<arg name="camera" default="stereo_camera"/>
+<arg name="imageIN" default="image_raw"/>
+<arg name="imageOUT" default="image"/>
+<arg name="run_rviz" default="true"/>
+<arg name="run_libviso" default="false"/>
+<arg name="bagfile" default="/home/abeauvisage/CityLondon/datasets/bags/ibis_coop_nav_improved_texture_2019-07-02-16-48-10.bag"/>
+<!-- arg name="bagfile" default="/home/abeauvisage/CityLondon/datasets/bags/ibis_coop_nav_2019-06-26-14-04-47.bag"/ -->
+
+<node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile)"/>
+
+<node pkg="image_transport" type="republish" name="left_images1" args="compressed in:=/ibis1/$(arg camera)/left/$(arg imageIN) raw out:=/ibis1/$(arg camera)/left/$(arg imageOUT)" output="screen">
+</node>
+<node pkg="image_transport" type="republish" name="right_images1" args="compressed in:=/ibis1/$(arg camera)/right/$(arg imageIN) raw out:=/ibis1/$(arg camera)/right/$(arg imageOUT)" output="screen">
+</node>
+<node pkg="image_transport" type="republish" name="left_images2" args="compressed in:=/ibis2/$(arg camera)/left/$(arg imageIN) raw out:=/ibis2/$(arg camera)/left/$(arg imageOUT)" output="screen">
+</node>
+<node pkg="image_transport" type="republish" name="right_images2" args="compressed in:=/ibis2/$(arg camera)/right/$(arg imageIN) raw out:=/ibis2/$(arg camera)/right/$(arg imageOUT)" output="screen">
+</node>
+
+<node pkg="viso2_ros" type="stereo_odometer" name="$(arg vehicle_odom)_stereo" if="$(arg run_libviso)">
+    <remap from="image" to="$(arg imageOUT)"/>
+    <remap from="stereo" to="/$(arg vehicle_odom)/$(arg camera)"/>
+    <param name="base_link_frame_id" value="odo_rover_base"/>
+    <param name="odom_frame_id" value="world"/>
+    <param name="sensor_frame_id" value="odo_cam_left"/>
+    <param name="publish_tf" value="true"/>
+
+    <param name="max_features" value="5" />
+    <param name="inlier_threshold" value="5.0" />
+    <param name="motion_threshold" value="350" />
+</node>
+
+<node pkg="tf" type="static_transform_publisher" name="cam_to_rover_base" args="0.24 0.045 0.16 -0.6097 0.61365 -0.3559 0.35361 odo_rover_base odo_cam_left 100"/>
+
+<group if="$(arg run_rviz)">
+<node pkg="rviz" type="rviz" name="rviz_control" args="-d /home/abeauvisage/.rviz/ibis_coop_dataset.rviz" output="screen"/>
+</group>
+
+</launch>
